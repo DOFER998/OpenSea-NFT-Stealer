@@ -9,6 +9,8 @@ This simple script automatically downloads entire NFT collections from OpenSea. 
 You can specify as many collections as you want to download. For example, if you want to download all the BAYC and CryptoPunks NFTs, do this: `python3 main.py boredapeyachtclub cryptopunks`.
 By default, all downloaded collections will be saved in a directory called `collections`. Due to a restriction placed on the OpenSea API, a maximum of 10,000 NFTs will be downloaded from a single collection.
 
+**For Ethereum collections only**
+
 The script currently supports image, video, and audio NFTs. Other types of files will still be downloaded, but they will be saved with a `.bin` extension. Feel free to open an issue if you encounter this and we can add support for that file type.
 
 ### Configuration Flags
