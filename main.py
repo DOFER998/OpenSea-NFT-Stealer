@@ -2,6 +2,8 @@ import os
 import sys
 import signal
 import requests
+import time
+import random
 
 # Constants
 # Root OpenSea API URL
@@ -34,13 +36,15 @@ def download_collection(collection):
             "collection": collection,
             "offset": page * PAGE_SIZE,
             "limit": PAGE_SIZE,
-            "order_direction": "asc"
+            "order_direction": "asc",
         }
 
         # Get assets in collection
         resp = requests.get(req_url, params=req_params)
         if resp.status_code != 200:
-            print(f"Error {resp.status_code} on page {page} of collection '{collection}'")
+            print(
+                f"Error {resp.status_code} on page {page} of collection '{collection}'"
+            )
             break
 
         # Convert API response to JSON
@@ -86,6 +90,9 @@ def download_asset(collection, asset):
 
     if asset_url == "":
         return
+    asset_url = asset_url.replace("?w=500&auto=format", "?auto=format&w=5000")
+
+    print(asset_url)
 
     # USD value of the asset
     # Will be zero if no one was dumb enough to buy it yet
@@ -98,7 +105,32 @@ def download_asset(collection, asset):
         last_price = int(total_price * token_price_usd)
 
     # Download asset content
-    req = requests.get(asset_url, stream=True)
+    max_retries = 100
+    retry_count = 0
+    timeout_seconds = random.randint(1, 5)
+
+    while retry_count < max_retries:
+        try:
+            req = requests.get(asset_url, stream=True, timeout=timeout_seconds)
+            if req.status_code == 200:
+                # Asset downloaded successfully
+                break
+        except requests.exceptions.Timeout:
+            # Retry the request
+            time.sleep(timeout_seconds)
+            retry_count += 1
+            print(f"Retry #{retry_count}")
+            continue
+        except requests.exceptions.RequestException as e:
+            # Handle other request exceptions
+            print(f"Request exception: {e}")
+            break
+        else:
+            # Handle other exceptions
+            break
+
+    if retry_count == max_retries:
+        print(f"Failed to download asset after {max_retries} retries")
 
     # Output file extension
     asset_ext = ""
